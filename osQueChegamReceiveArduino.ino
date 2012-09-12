@@ -12,21 +12,23 @@
 #define MY_ID 0x1
 
 #define STATE_RECEIVE 0x0
-#define STATE_RANDOM 0x1
+#define STATE_SYNC 0x1
+#define STATE_RANDOM 0x2
 
 #define COMMAND_RECEIVE 0x25  // b 0010_0101
-#define COMMAND_RANDOM 0xAB   // b 1010_1011
+#define COMMAND_SYNC    0x5A  // b 0101_1010
+#define COMMAND_RANDOM  0xAB  // b 1010_1011
 
 unsigned int currentState;
 unsigned long lastUpdated;
 
 int go;
 int current;
-int relay_a = 9;
+int relayPin = 9;
 
 void setup() {
   Serial.begin(9600);    
-  pinMode(relay_a, OUTPUT);
+  pinMode(relayPin, OUTPUT);
 
   // Initialise the IO and ISR
   vw_set_ptt_inverted(true);    // Required for RX Link Module
@@ -104,7 +106,7 @@ void loop(){
 
   // always do this. even if in random mode. 
   if(go != current){
-    digitalWrite(relay_a, go);   // relay coil off    
+    digitalWrite(relayPin, go);
     current = go;
   }
 
