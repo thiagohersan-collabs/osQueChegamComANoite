@@ -8,7 +8,8 @@
 #undef round
 
 /////
-#define MY_ID 0x0
+// can't have ID of 0 because we can't transmit a byte that's equal to \0
+#define MY_ID 0x1
 
 #define STATE_RECEIVE 0x0
 #define STATE_RANDOM 0x1
@@ -56,34 +57,30 @@ void loop(){
   if ((currentState == STATE_RECEIVE) && (vw_get_message(buf, &buflen))) {
     Serial.print("Received something, buflen = ");
     Serial.println(buflen);
-    if(buflen >= 4){
+    if(buflen >= 2){
       unsigned char cmd = (buf[0]>>1)&0x7F;
       unsigned char onOff = (buf[0])&0x1;
       unsigned char id = (buf[1])&0xFF;
-      unsigned char checksum = (buf[2])&0xFF;
-      unsigned char sum = numOnes(buf[0]) + numOnes(buf[1]);
 
-      // Message with a good checksum received
-      if(sum == checksum){
-        Serial.print("comamnd: ");
-        Serial.print(cmd);
-        Serial.print(" on/off: ");
-        Serial.print(onOff);
-        Serial.print(" ID: ");
-        Serial.print(id);
-        Serial.print(" checksum: ");
-        Serial.print(checksum);
-        Serial.print("\n");
+      // no checksum
+      Serial.print("comamnd: ");
+      Serial.print(cmd);
+      Serial.print(" on/off: ");
+      Serial.print(onOff);
+      Serial.print(" ID: ");
+      Serial.print(id);
+      Serial.print("\n");
 
-        // check for command to enable random mode
-        if(buf[0] == COMMAND_RANDOM){
-          currentState = STATE_RANDOM;
-        }
-        // receive command
-        else if((cmd == COMMAND_RECEIVE) && (id == MY_ID)){
-          // set signal for on/off
-          go = onOff;
-        }
+      // check for command to enable random mode
+      if(buf[0] == COMMAND_RANDOM){
+        Serial.println("command random");
+        currentState = STATE_RANDOM;
+      }
+      // receive command
+      else if((cmd == COMMAND_RECEIVE) && (id == MY_ID)){
+        Serial.println("command receive for my ID");
+        // set signal for on/off
+        go = onOff;
       }
     }
     //
@@ -107,28 +104,16 @@ void loop(){
 
   // always do this. even if in random mode. 
   if(go != current){
-    Serial.println("go != current");
     if(go == 0){
-      Serial.println("turn relay OFF");
       digitalWrite(relay_a, LOW);   // relay coil off    
       current = 0;
     }
     else if(go == 1){
-      Serial.println("turn relay ON");
       digitalWrite(relay_a, HIGH);   // relay coil on       
       current = 1;
     }
   }
 
 }
-
-
-
-
-
-
-
-
-
 
 
