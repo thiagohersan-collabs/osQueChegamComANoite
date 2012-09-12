@@ -9,16 +9,17 @@
 
 /////
 // can't have ID of 0 because we can't transmit a byte that's equal to \0
-#define MY_ID 0x1
+#define MY_ID 0x2
 
 #define STATE_RECEIVE 0x0
 #define STATE_SYNC 0x1
 #define STATE_RANDOM 0x2
 
-#define COMMAND_RECEIVE     0x25  // b 0010_0101
-#define COMMAND_SYNC        0x5A  // b 0101_1010
-#define COMMAND_TOGGLE_SYNC 0xD6  // b 1101_0110
-#define COMMAND_RANDOM      0xAB  // b 1010_1011
+#define COMMAND_RECEIVE      0x25  // b 0010_0101
+#define COMMAND_SYNC         0x5A  // b 0101_1010
+#define COMMAND_ENABLE_SYNC  0xD6  // b 1101_0110
+#define COMMAND_DISABLE_SYNC 0xB9  // b 1011_1001
+#define COMMAND_RANDOM       0xAB  // b 1010_1011
 
 unsigned int currentState;
 unsigned long lastUpdated;
@@ -40,6 +41,8 @@ void setup() {
   current = go = 0;
   currentState = STATE_RECEIVE;
   lastUpdated = millis();
+
+  randomSeed(MY_ID*MY_ID);
 }
 
 void loop(){
@@ -71,12 +74,17 @@ void loop(){
         currentState = STATE_RANDOM;
       }
       // check for command to enable sync mode
-      if(buf[0] == COMMAND_TOGGLE_SYNC){
-        Serial.println("command toggle sync");
-        currentState = (currentState==STATE_SYNC)?STATE_RECEIVE:STATE_SYNC;
+      else if(buf[0] == COMMAND_ENABLE_SYNC){
+        Serial.println("command enable sync");
+        currentState = STATE_SYNC;
+      }
+      // check for command to disable sync mode
+      else if(buf[0] == COMMAND_DISABLE_SYNC){
+        Serial.println("command disable sync");
+        currentState = STATE_RECEIVE;
       }
       // check for command to actually sync stuff
-      if(buf[0] == COMMAND_SYNC){
+      else if(buf[0] == COMMAND_SYNC){
         Serial.println("command sync");
         // immediately update light
         digitalWrite(relayPin, go);
