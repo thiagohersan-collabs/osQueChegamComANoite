@@ -104,16 +104,11 @@ void loop(){
 
   // always do this. even if in random mode. 
   if(go != current){
-    if(go == 0){
-      digitalWrite(relay_a, LOW);   // relay coil off    
-      current = 0;
-    }
-    else if(go == 1){
-      digitalWrite(relay_a, HIGH);   // relay coil on       
-      current = 1;
-    }
+    digitalWrite(relay_a, go);   // relay coil off    
+    current = go;
   }
 
 }
+
 
 
