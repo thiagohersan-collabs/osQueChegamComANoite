@@ -42,15 +42,6 @@ void setup() {
   lastUpdated = millis();
 }
 
-// count number of 1 bits in a char
-unsigned char numOnes(unsigned char c){
-  unsigned char result = 0;
-  for(unsigned char i = 0; i<8; i++){
-    result += (c>>i)&0x1;
-  }
-  return result;
-}
-
 void loop(){
   uint8_t buf[VW_MAX_MESSAGE_LEN];
   uint8_t buflen = VW_MAX_MESSAGE_LEN;
