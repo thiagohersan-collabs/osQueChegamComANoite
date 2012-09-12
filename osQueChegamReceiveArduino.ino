@@ -17,6 +17,7 @@
 #define COMMAND_RANDOM 0xAB   // b 1010_1011
 
 unsigned int currentState;
+unsigned long lastUpdated;
 
 int go;
 int current;
@@ -34,6 +35,7 @@ void setup() {
 
   current = go = 0;
   currentState = STATE_RECEIVE;
+  lastUpdated = millis();
 }
 
 // count number of 1 bits in a char
@@ -84,9 +86,23 @@ void loop(){
         }
       }
     }
+    //
+    lastUpdated = millis();
   }
-  // if in random mode
+  // if in random mode, 
+  //    pick a random value for on/off variable about every 5 seconds
   else if(currentState == STATE_RANDOM){
+    if((millis() - lastUpdated) > random(4000,8000)){
+      go = (int)(random(0,2));
+      lastUpdated = millis();
+    }
+  }
+  // if it's been a long time since we've seen an update (5 minutes)
+  //    we're in RECEIVE mode, but not receiving
+  else if((millis() - lastUpdated) > 300000){
+    currentState = STATE_RANDOM;
+    go = (int)(random(0,2));
+    lastUpdated = millis();
   }
 
   // always do this. even if in random mode. 
@@ -105,6 +121,8 @@ void loop(){
   }
 
 }
+
+
 
 
 
