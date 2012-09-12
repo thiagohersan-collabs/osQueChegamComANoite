@@ -15,9 +15,10 @@
 #define STATE_SYNC 0x1
 #define STATE_RANDOM 0x2
 
-#define COMMAND_RECEIVE 0x25  // b 0010_0101
-#define COMMAND_SYNC    0x5A  // b 0101_1010
-#define COMMAND_RANDOM  0xAB  // b 1010_1011
+#define COMMAND_RECEIVE     0x25  // b 0010_0101
+#define COMMAND_SYNC        0x5A  // b 0101_1010
+#define COMMAND_TOGGLE_SYNC 0xD6  // b 1101_0110
+#define COMMAND_RANDOM      0xAB  // b 1010_1011
 
 unsigned int currentState;
 unsigned long lastUpdated;
@@ -56,7 +57,7 @@ void loop(){
 
 
   // check to see if anything has been received
-  if ((currentState == STATE_RECEIVE) && (vw_get_message(buf, &buflen))) {
+  if ((currentState != STATE_RANDOM) && (vw_get_message(buf, &buflen))) {
     Serial.print("Received something, buflen = ");
     Serial.println(buflen);
     if(buflen >= 2){
@@ -77,6 +78,18 @@ void loop(){
       if(buf[0] == COMMAND_RANDOM){
         Serial.println("command random");
         currentState = STATE_RANDOM;
+      }
+      // check for command to enable sync mode
+      if(buf[0] == COMMAND_TOGGLE_SYNC){
+        Serial.println("command toggle sync");
+        currentState = (currentState==STATE_SYNC)?STATE_RECEIVE:STATE_SYNC;
+      }
+      // check for command to actually sync stuff
+      if(buf[0] == COMMAND_SYNC){
+        Serial.println("command sync");
+        // immediately update light
+        digitalWrite(relayPin, go);
+        current = go;
       }
       // receive command
       else if((cmd == COMMAND_RECEIVE) && (id == MY_ID)){
@@ -104,13 +117,14 @@ void loop(){
     lastUpdated = millis();
   }
 
-  // always do this. even if in random mode. 
-  if(go != current){
+  // always do this. even if in random mode. but not in sync mode
+  if((go != current) && (currentState != STATE_SYNC)){
     digitalWrite(relayPin, go);
     current = go;
   }
 
 }
+
 
 
 
