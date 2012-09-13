@@ -9,7 +9,7 @@
 
 /////
 // can't have ID of 0 because we can't transmit a byte that's equal to \0
-#define MY_ID 0x2
+#define MY_ID 0x1
 
 #define STATE_RECEIVE 0x0
 #define STATE_SYNC 0x1
@@ -95,6 +95,7 @@ void loop(){
         Serial.println("command receive for my ID");
         // set signal for on/off
         go = onOff;
+        currentState = STATE_RECEIVE;
       }
     }
     //
