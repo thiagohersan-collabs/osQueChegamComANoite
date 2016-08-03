@@ -1,0 +1,56 @@
+
+void setup() {
+  Serial.begin(9600);
+  vw_set_ptt_inverted(true);    // Required for RF Link module
+  vw_setup(1200);               // Bits per sec
+  vw_set_tx_pin(7);             // pin 7 is used as the transmit data out into the TX Link module
+
+  lastUpdate = millis();
+  transCnt = 0;
+}
+
+// to send commands that don't need an id
+void sendCommand(unsigned char cmd){
+  theMsg[0] = cmd;
+  theMsg[1] = 0xFF;
+  theMsg[2] = '\0';
+
+  const char * foo = (const char *)theMsg;
+  vw_send((uint8_t *)foo, strlen(foo));
+  vw_wait_tx();
+}
+
+void loop() {
+  /// sync !!
+  sendCommand(COMMAND_ENABLE_SYNC);
+
+  if((millis() - lastUpdate) > UPDATE_PERIOD){
+    for(unsigned char i = 1; i < NUM_LIGHTS+1; i++){
+      // leet shit
+      onOff = theTrans[i][transCnt/8];
+      onOff = (onOff>>(transCnt%8))&0x1;
+
+      theMsg[0] = (COMMAND_RECEIVE<<0x1)|onOff;
+      theMsg[1] = i&0xFF;
+      theMsg[2] = '\0';
+
+      Serial.print("message: ");
+      Serial.print(theMsg[0]);
+      Serial.print(" ID: ");
+      Serial.print(theMsg[1]);
+      Serial.print("\n");
+
+      const char * foo = (const char *)theMsg;
+      vw_send((uint8_t *)foo, strlen(foo));
+      vw_wait_tx(); 
+    }
+
+    //
+    lastUpdate = millis();
+    transCnt = (transCnt+1)%(int)(NUM_TRANSITIONS);
+
+    /// sync !!
+    sendCommand(COMMAND_SYNC);
+  }
+}
+

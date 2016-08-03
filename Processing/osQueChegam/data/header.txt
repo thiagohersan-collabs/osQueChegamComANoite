@@ -1,0 +1,26 @@
+//transmitter
+
+#include <VirtualWire.h>  
+
+#undef int
+#undef abs
+#undef double
+#undef float
+#undef round
+
+//////////
+#define COMMAND_RECEIVE      0x25  // b 0010_0101
+#define COMMAND_SYNC         0x5A  // b 0101_1010
+#define COMMAND_ENABLE_SYNC  0xD6  // b 1101_0110
+#define COMMAND_DISABLE_SYNC 0xB9  // b 1011_1001
+#define COMMAND_RANDOM       0xAB  // b 1010_1011
+
+// in millis
+#define UPDATE_PERIOD 1000
+
+unsigned char onOff;
+unsigned char theMsg[3];
+unsigned long transCnt;
+unsigned long lastUpdate;
+
+
